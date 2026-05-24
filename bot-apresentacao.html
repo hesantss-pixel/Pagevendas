@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bot de Atendimento – Automação Inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #0a0a0a;
+    --green: #00e676;
+    --green-dim: #00c853;
+    --white: #f5f5f5;
+    --gray: #1a1a1a;
+    --gray2: #2a2a2a;
+    --muted: #888;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 60px 0 40px;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,230,118,0.1);
+    border: 1px solid rgba(0,230,118,0.3);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    color: var(--green);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 14vw, 72px);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero h1 span {
+    color: var(--green);
+  }
+
+  .hero p {
+    margin-top: 20px;
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  /* STAT */
+  .stat-bar {
+    margin: 40px 0;
+    background: var(--gray);
+    border: 1px solid var(--gray2);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 83%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--green), var(--green-dim));
+    border-radius: 3px;
+  }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 64px;
+    color: var(--green);
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .stat-bar p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .stat-bar strong {
+    color: var(--white);
+  }
+
+  /* FEATURES */
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--green);
+    margin-bottom: 16px;
+    animation: fadeUp 0.6s 0.35s ease both;
+  }
+
+  .features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .feature {
+    background: var(--gray);
+    border: 1px solid var(--gray2);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .feature:nth-child(1) { animation-delay: 0.4s; }
+  .feature:nth-child(2) { animation-delay: 0.5s; }
+  .feature:nth-child(3) { animation-delay: 0.6s; }
+  .feature:nth-child(4) { animation-delay: 0.7s; }
+  .feature:nth-child(5) { animation-delay: 0.8s; }
+
+  .feature-icon {
+    width: 42px; height: 42px;
+    background: rgba(0,230,118,0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .feature-text h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .feature-text p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* 24H BLOCK */
+  .block-24 {
+    background: linear-gradient(135deg, #0d1f14, #0a1a10);
+    border: 1px solid rgba(0,230,118,0.25);
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s 0.85s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .block-24::after {
+    content: '24H';
+    position: absolute;
+    bottom: -20px; right: -10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 120px;
+    color: rgba(0,230,118,0.05);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .block-24 .big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    color: var(--green);
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
+  .block-24 h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 8px 0 10px;
+  }
+
+  .block-24 p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .pills {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .pill {
+    background: rgba(0,230,118,0.1);
+    border: 1px solid rgba(0,230,118,0.2);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  /* PRICING */
+  .pricing {
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s 0.95s ease both;
+  }
+
+  .price-card {
+    background: var(--gray);
+    border: 1px solid var(--gray2);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .price-header {
+    background: linear-gradient(135deg, #111, #181818);
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--gray2);
+  }
+
+  .price-header h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .price-label {
+    font-size: 12px;
+    color: var(--muted);
+    width: 90px;
+    flex-shrink: 0;
+  }
+
+  .price-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px;
+    color: var(--green);
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .price-value small {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .price-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--gray2);
+    margin: 0 16px;
+    flex-shrink: 0;
+  }
+
+  .price-rows {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 4px 0;
+  }
+
+  .price-body {
+    padding: 20px 24px;
+  }
+
+  .price-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .price-item:last-child { border-bottom: none; }
+
+  .check {
+    color: var(--green);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* CTA */
+  .cta {
+    text-align: center;
+    padding: 0 0 60px;
+    animation: fadeUp 0.6s 1.05s ease both;
+  }
+
+  .cta p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--green);
+    color: #000;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 16px 32px;
+    border-radius: 100px;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(0,230,118,0.25);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(0,230,118,0.4);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge"><div class="dot"></div> Automação com I.A</div>
+    <h1>Seu negócio<br>atendendo<br><span>sem parar</span></h1>
+    <p>Um robô inteligente que responde, agenda e organiza tudo pelo WhatsApp — enquanto você foca no que realmente importa.</p>
+  </div>
+
+  <!-- STAT -->
+  <div class="stat-bar">
+    <div class="stat-number">83%</div>
+    <p>dos clientes <strong>escolhem ir em quem responde mais rápido.</strong><br>Seu bot responde na hora — sempre.</p>
+  </div>
+
+  <!-- FEATURES -->
+  <p class="section-label">O que o robô faz</p>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📅</div>
+      <div class="feature-text">
+        <h3>Agendamentos automáticos</h3>
+        <p>O cliente escolhe o dia, horário e profissional direto pelo WhatsApp, sem precisar de você.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💬</div>
+      <div class="feature-text">
+        <h3>Atendimento instantâneo</h3>
+        <p>Responde dúvidas sobre serviços, preços e disponibilidade em segundos.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <div class="feature-text">
+        <h3>Organização em planilha</h3>
+        <p>Todos os agendamentos registrados automaticamente, organizados e fáceis de visualizar.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔔</div>
+      <div class="feature-text">
+        <h3>Confirmação e lembretes</h3>
+        <p>Envia confirmação ao cliente e lembrete antes do horário, reduzindo faltas.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚙️</div>
+      <div class="feature-text">
+        <h3>Personalizado para o seu negócio</h3>
+        <p>Configurado com os seus serviços, preços, horários e nome do seu estabelecimento.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 24H -->
+  <div class="block-24">
+    <div class="big">24H</div>
+    <h3>Sem faltas. Sem férias. Sem pausas.</h3>
+    <p>O robô opera todos os dias do ano, a qualquer hora. Enquanto você descansa, ele trabalha.</p>
+    <div class="pills">
+      <span class="pill">Segunda a Domingo</span>
+      <span class="pill">Feriados</span>
+      <span class="pill">Madrugada</span>
+      <span class="pill">Sem interrupção</span>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <p class="section-label">Investimento</p>
+  <div class="pricing">
+    <div class="price-card">
+      <div class="price-header">
+        <h3>Bot de Agendamento via WhatsApp</h3>
+        <div class="price-rows">
+          <div>
+            <div class="price-label">Instalação</div>
+            <div class="price-row">
+              <div class="price-value">R$300<small></small></div>
+            </div>
+          </div>
+          <div class="price-divider"></div>
+          <div>
+            <div class="price-label">Mensalidade</div>
+            <div class="price-row">
+              <div class="price-value">R$89<small>/mês</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="price-body">
+        <div class="price-item"><span class="check">✓</span> Configuração completa inclusa</div>
+        <div class="price-item"><span class="check">✓</span> Agendamentos automáticos</div>
+        <div class="price-item"><span class="check">✓</span> Atendimento 24h no WhatsApp</div>
+        <div class="price-item"><span class="check">✓</span> Organização em planilha</div>
+        <div class="price-item"><span class="check">✓</span> Personalizado para o seu negócio</div>
+        <div class="price-item"><span class="check">✓</span> Suporte incluso</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO -->
+  <p class="section-label" style="animation: fadeUp 0.6s 1s ease both;">Veja o robô operando</p>
+  <div style="margin-bottom:40px; animation: fadeUp 0.6s 1s ease both;">
+    <div style="background:var(--gray); border:1px solid var(--gray2); border-radius:20px; overflow:hidden;">
+      <div style="background:#111; padding:14px 20px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--gray2);">
+        <div style="display:flex;gap:6px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+          <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
+          <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
+        </div>
+        <span style="font-size:12px;color:var(--muted);margin-left:6px;">Demo ao vivo — Barbearia</span>
+      </div>
+      <div style="padding:32px 24px; text-align:center;">
+        <div style="font-size:48px; margin-bottom:16px;">🤖</div>
+        <h3 style="font-size:17px; font-weight:600; margin-bottom:8px;">Robô de Agendamento</h3>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.6;">Clique abaixo e interaja com o robô funcionando de verdade. Tente agendar um horário!</p>
+        <a href="https://hesantss-pixel.github.io/Demo-barbearia/barbearia-demo-2.html" target="_blank"
+          style="display:inline-flex; align-items:center; gap:8px; background:var(--green); color:#000; font-weight:700; font-size:14px; padding:14px 28px; border-radius:100px; text-decoration:none; box-shadow: 0 0 24px rgba(0,230,118,0.3);">
+          ▶ Abrir demonstração
+        </a>
+        <div style="display:flex; justify-content:center; gap:20px; margin-top:24px;">
+          <div style="text-align:center;">
+            <div style="font-size:20px;">💬</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:4px;">Responde na hora</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;">📅</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:4px;">Agenda sozinho</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;">🕐</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:4px;">24h por dia</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <p>Pronto para atender mais e trabalhar menos?</p>
+    <a href="https://wa.me/5511955914618" class="btn">
+      💬 Quero meu robô agora
+    </a>
+  </div>
+
+</div>
+</body>
+</html>
